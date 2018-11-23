@@ -5,7 +5,7 @@ package RS485Proto;
 use IO::Select;
 use IO::Handle;
 use Time::HiRes qw(time);
-use Carp qw(croak);
+use Carp qw(croak carp);
 use Digest::CRC qw(crc8);
 
 my $STX = "\x02";
@@ -122,6 +122,7 @@ sub select_output {
 sub send {
     my ($self, $message) = @_;
 
+    utf8::downgrade($message, 1) or carp "Wide character in send method";
     my ($packet, $crc) = _encode($message);
     $self->{output}->print("$STX$packet$ETX$crc");
 }
