@@ -60,7 +60,8 @@ sub _read {
 sub _decode {
     my ($packet, $crc) = @_;
 
-    # Verify insane redundancy scheme: wasting 50% in an overly complex way.
+    # Verify insane redundancy scheme: wasting 50% in an overly complex way
+    # without any error recovery.
     length($packet) % 2 == 0 or return;
     for my $byte (split //, $packet) {
         my $ord = ord $byte;
@@ -68,7 +69,7 @@ sub _decode {
     }
 
     # Decode
-    my $num = $packet =~ s/(.)(.)/chr((ord($1) & 0xF0) | (ord($2) >> 4))/se;
+    my $num = $packet =~ s/(.)(.)/chr((ord($1) & 0xF0) | (ord($2) >> 4))/seg;
     $num == length($packet) or return;
 
     # Verify
