@@ -1,0 +1,54 @@
+=head1 NAME
+
+    RS485Proto - Perl implementation of Nick Gammon's RS485 protocol
+
+=head1 SYNOPSIS
+
+=head1 DESCRIPTION
+
+This module aims to implement the "RS485 protocol" from Nick Gammon's Arduino
+library C<RS485_protocol>.
+
+Neither the protocol nor this implementation actually depends on RS485. It
+should also work over something else, such as RS232.
+
+This library was tested with an FTDI USB-RS485-WE under Linux.
+
+=head2 Class methods
+
+=head3 new
+
+Constructs and returns an instance. Takes named arguments. The named argument
+C<timeout> is mandatory and given in seconds. Internal buffers are purged
+after this timeout, which means that any message must be sent within that time.
+
+The original Arduino library has a default timeout of 0.5 seconds. This module
+does not supply a default value; 500 ms is probably too much for a busy bus.
+
+=head2 Instance methods
+
+=head2 add(handle)
+
+Given a filehandle, e.g. an opened serial port, adds it to the sources from
+which the RS485Proto instance can receive messages.
+
+=head2 poll([timeout])
+
+Reads from the device(s) and returns a list of strings, each containing a
+decoded and verified message. Returns an empty list if no valid messages have
+been received.
+
+If a timeout is given, it is passed to IO::Select->can_read instead of the
+rather long default of 1 second.
+
+Invalid messages and other noise are silently discarded. A message is invalid
+when the encoding is not redundant or when the CRC does not match.
+
+Messages are not de-duplicated.
+
+This method should be called continuously in your program's main event loop.
+
+=head1 AUTHOR
+
+Juerd Waalboer <juerd@tnx.nl>
+
