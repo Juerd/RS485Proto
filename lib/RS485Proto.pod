@@ -48,6 +48,18 @@ Messages are not de-duplicated.
 
 This method should be called continuously in your program's main event loop.
 
+=head2 select_output(handle)
+
+Selects the given filehandle for subsequent calls to C<send>. This handle can
+be, but doesn't have to be, one that was previously given to the C<add> method.
+
+=head2 send(message)
+
+Encodes and sends the message using the selected output handle.
+
+The handle given to the first call to C<add> is automatically selected. Another
+handle can be selected with C<select_output>.
+
 =head1 AUTHOR
 
 Juerd Waalboer <juerd@tnx.nl>

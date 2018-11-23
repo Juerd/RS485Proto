@@ -3,6 +3,7 @@ use warnings;
 
 package RS485Proto;
 use IO::Select;
+use IO::Handle;
 use Time::HiRes qw(time);
 use Carp qw(croak);
 use Digest::CRC qw(crc8);
@@ -25,6 +26,9 @@ sub new {
 
 sub add {
     my ($self, $handle) = @_;
+
+    $self->select_output($handle) if not $self->{output};
+
     $self->{inputs}{$handle} = {
         handle => $handle,
         buffer => "",
@@ -49,7 +53,7 @@ sub _read {
     my ($self, $select_timeout) = @_;
 
     for my $handle ($self->{select}->can_read($select_timeout)) {
-        sysread $handle, my $buffer, 1024;
+        $handle->sysread(my $buffer, 1024);
         my $input = $self->{inputs}{$handle};
 
         $input->{buffer} .= $buffer;
@@ -78,6 +82,17 @@ sub _decode {
     return $packet;
 }
 
+sub _encode {
+    my ($data) = @_;
+    my $packet = "";
+    for my $octet (map ord, split //, $data) {
+        my $msn = $octet >> 4;
+        my $lsn = $octet & 0xF;
+        $packet .= chr($msn << 4 | ($msn ^ 0xF)) . chr($lsn << 4 | ($lsn ^ 0xF));
+    }
+    return $packet, chr(crc8($data));
+}
+
 sub poll {
     my ($self, $select_timeout) = @_;
 
@@ -95,6 +110,20 @@ sub poll {
         push @messages, $message if defined $message;
     }
     return @messages;
+}
+
+sub select_output {
+    my ($self, $handle) = @_;
+
+    $handle->autoflush(1);
+    $self->{output} = $handle;
+}
+
+sub send {
+    my ($self, $message) = @_;
+
+    my ($packet, $crc) = _encode($message);
+    $self->{output}->print("$STX$packet$ETX$crc");
 }
 
 1;
