@@ -1,13 +1,26 @@
 =head1 NAME
 
-    RS485Proto - Perl implementation of Nick Gammon's RS485 protocol
+RS485Proto - Perl implementation of Nick Gammon's RS485 protocol
 
 =head1 SYNOPSIS
+
+    use RS485Proto;
+
+    my $handle = IO::File->open(...);
+
+    my $proto = RS485Proto->new(timeout => .1);
+    $proto->add($handle);
+
+    while (1) {
+        my @messages = $proto->poll;
+        ...;
+    }
 
 =head1 DESCRIPTION
 
 This module aims to implement the "RS485 protocol" from Nick Gammon's Arduino
-library C<RS485_protocol>.
+library C<RS485_protocol>. The interface depends on Perl filehandles instead of
+callbacks, but with Perl's C<tie> you could of course still use custom code.
 
 Neither the protocol nor this implementation actually depends on RS485. It
 should also work over something else, such as RS232.
@@ -38,8 +51,8 @@ Reads from the device(s) and returns a list of strings, each containing a
 decoded and verified message. Returns an empty list if no valid messages have
 been received.
 
-If a timeout is given, it is passed to IO::Select->can_read instead of the
-rather long default of 1 second.
+If a timeout is given, it is passed to C<< IO::Select->can_read >> instead of
+the rather long default of 1 second.
 
 Invalid messages and other noise are silently discarded. A message is invalid
 when the encoding is not redundant or when the CRC does not match.
@@ -64,3 +77,6 @@ handle can be selected with C<select_output>.
 
 Juerd Waalboer <juerd@tnx.nl>
 
+=head1 SEE ALSO
+
+Protocol specification and rationale: http://www.gammon.com.au/forum/?id=11428
