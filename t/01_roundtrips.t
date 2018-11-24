@@ -2,8 +2,9 @@
 use strict;
 use warnings;
 use Test::More qw(no_plan);
-use RS485Proto;
 
+
+require_ok "RS485Proto" or BAIL_OUT "Can't even load the module";
 
 my @messages = ("", "A", "\0", "\xFF", "Hello, world!");
 
