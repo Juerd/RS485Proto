@@ -108,6 +108,8 @@ sub poll {
 
         my $message = _decode($packet, $crc);
         push @messages, $message if defined $message;
+
+        redo if length $$buffer;
     }
     return @messages;
 }
