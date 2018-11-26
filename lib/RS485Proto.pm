@@ -2,6 +2,9 @@ use strict;
 use warnings;
 
 package RS485Proto;
+
+our $VERSION = '1.00';
+
 use IO::Select;
 use IO::Handle;
 use Time::HiRes qw(time);

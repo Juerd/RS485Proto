@@ -77,6 +77,12 @@ handle can be selected with C<select_output>.
 
 Juerd Waalboer <juerd@tnx.nl>
 
+=head1 LICENSE
+
+Pick your favourite OSI approved license :)
+
+http://www.opensource.org/licenses/alphabetical
+
 =head1 SEE ALSO
 
 Protocol specification and rationale: http://www.gammon.com.au/forum/?id=11428
