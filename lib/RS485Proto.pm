@@ -116,7 +116,9 @@ sub poll {
         $crc    = _decode($crc);
 
         push @messages, $packet
-            if defined $packet and $crc eq _crc8maxim($packet);
+            if  defined $packet
+            and defined $crc
+            and $crc eq _crc8maxim($packet);
 
         redo if length $$buffer;
     }
