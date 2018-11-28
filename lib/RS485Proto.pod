@@ -73,6 +73,12 @@ Encodes and sends the message using the selected output handle.
 The handle given to the first call to C<add> is automatically selected. Another
 handle can be selected with C<select_output>.
 
+Note that in half duplex RS485, typically a slave may only send in response to
+a master's request. In between, the slave may need to implement a short delay
+(for example 1 ms, or 50 if the master is slow) to allow the master's
+transceiver to switch from sending to receiving. Consider using the C<sleep>
+function from L<Time::HiRes> before using C<send> on an RS485 slave device.
+
 =head1 AUTHOR
 
 Juerd Waalboer <juerd@tnx.nl>
