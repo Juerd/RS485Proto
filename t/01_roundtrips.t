@@ -12,8 +12,8 @@ subtest "Encoding round-trips" => sub {
     plan tests => scalar @messages;
 
     for my $message (@messages) {
-        my ($packet, $crc) = RS485Proto::_encode($message);
-        is(RS485Proto::_decode($packet, $crc), $message,
+        my $packet = RS485Proto::_encode($message);
+        is(RS485Proto::_decode($packet), $message,
             "Message: '" . unpack("H*", $message) . "'");
     }
 };

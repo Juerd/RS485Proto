@@ -9,10 +9,15 @@ use IO::Select;
 use IO::Handle;
 use Time::HiRes qw(time);
 use Carp qw(croak carp);
-use Digest::CRC qw(crc8);
+use Digest::CRC qw(crc);
 
 my $STX = "\x02";
 my $ETX = "\x03";
+
+sub _crc8maxim {
+    my ($data) = @_;
+    return chr crc($data, 8, 0, 0, 1, 0x31, 1, 0);
+}
 
 sub new {
     my ($class, %args) = @_;
@@ -65,7 +70,7 @@ sub _read {
 }
 
 sub _decode {
-    my ($packet, $crc) = @_;
+    my ($packet) = @_;
 
     # Verify insane redundancy scheme: wasting 50% in an overly complex way
     # without any error recovery.
@@ -80,8 +85,6 @@ sub _decode {
     $num == length($packet) or return;
 
     # Verify
-    ord($crc) == crc8($packet) or return;
-
     return $packet;
 }
 
@@ -93,7 +96,7 @@ sub _encode {
         my $lsn = $octet & 0xF;
         $packet .= chr($msn << 4 | ($msn ^ 0xF)) . chr($lsn << 4 | ($lsn ^ 0xF));
     }
-    return $packet, chr(crc8($data));
+    return $packet;
 }
 
 sub poll {
@@ -106,11 +109,14 @@ sub poll {
     my @messages;
 
     BUFFER: for my $buffer (map \$_->{buffer}, values %{ $self->{inputs} }) {
-        my ($packet, $crc) = $$buffer =~ /$STX (.*?) $ETX (.)/xs or next;
+        my ($packet, $crc) = $$buffer =~ /$STX (.*?) $ETX (..)/xs or next;
         substr $$buffer, 0, $+[0], "";  # clear buffer up to end of match
 
-        my $message = _decode($packet, $crc);
-        push @messages, $message if defined $message;
+        $packet = _decode($packet);
+        $crc    = _decode($crc);
+
+        push @messages, $packet
+            if defined $packet and $crc eq _crc8maxim($packet);
 
         redo if length $$buffer;
     }
@@ -128,7 +134,8 @@ sub send {
     my ($self, $message) = @_;
 
     utf8::downgrade($message, 1) or carp "Wide character in send method";
-    my ($packet, $crc) = _encode($message);
+    my $packet = _encode($message);
+    my $crc    = _encode(_crc8maxim($message));
     $self->{output}->print("$STX$packet$ETX$crc");
 }
 
